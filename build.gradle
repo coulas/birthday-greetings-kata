@@ -1,5 +1,4 @@
 apply plugin: "java"
-apply plugin: 'net.serenity-bdd.aggregator'
 
 version = "1.0"
 description = "Happy Birthday Greetings Kata from XPUG Italia (Matteo Vaccari)"
@@ -11,28 +10,30 @@ task wrapper(type: Wrapper) {
     gradleVersion = '3.5'
 }
 
-buildscript {
-    repositories {
-        mavenLocal()
-        jcenter()
-    }
-    dependencies {
-        classpath("net.serenity-bdd:serenity-gradle-plugin:1.1.1")
-    }
-}
-
-/*
 configurations {
-    cucumberRuntime {
-        extendsFrom testRuntime
-    }
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
+    check.dependsOn integrationTest
+    //integrationTest.mustRunAfter test
 }
-*/
 
 repositories {
     mavenLocal()
     jcenter()
     mavenCentral()
+}
+
+/* https://www.petrikainulainen.net/programming/gradle/getting-started-with-gradle-integration-testing/ */
+
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integrationTest/java')
+        }
+        resources.srcDir file('src/integrationTest/resources')
+    }
 }
 
 dependencies {
@@ -46,27 +47,28 @@ dependencies {
     testCompile "org.assertj:assertj-core:3.1.0"
     testCompile "org.mockito:mockito-all:1.10.19"
 
-    testCompile ("dumbster:dumbster:1.6") {
+    integrationTestCompile ("dumbster:dumbster:1.6") {
         exclude module: 'mail'
     }
 
-    testCompile 'info.cukes:cucumber-java:1.2.5'
-    testCompile 'info.cukes:cucumber-junit:1.2.5'
-
-    testCompile "net.serenity-bdd:serenity-cucumber:1.1.35"
-    testCompile "net.serenity-bdd:serenity-core:1.4.0"
-    compile 'net.serenity-bdd:serenity-gradle-plugin:1.4.0'
+    integrationTestCompile 'info.cukes:cucumber-java:1.2.5'
+    integrationTestCompile 'info.cukes:cucumber-junit:1.2.5'
 
 }
 
-
-task cucumber() {
-    dependsOn assemble, compileTestJava
+task integrationTest(type: Test) {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    outputs.upToDateWhen { false }
     doLast {
         javaexec {
             main = "cucumber.api.cli.Main"
-            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
             args = ['--plugin', 'pretty', '--glue', 'gradle.cucumber', 'src/test/resources']
         }
     }
+}
+
+tasks.withType(Test) {
+    reports.html.destination = file("${reporting.baseDir}/${name}")
 }
