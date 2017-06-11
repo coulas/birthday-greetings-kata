@@ -1,2 +1,12 @@
 bin
 target
+.gradle/
+.idea/
+gradle/
+gradlew
+gradlew.bat
+build/
+*.iml
+.project
+.classpath
+
