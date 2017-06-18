@@ -13,8 +13,6 @@ task wrapper(type: Wrapper) {
 configurations {
     integrationTestCompile.extendsFrom testCompile
     integrationTestRuntime.extendsFrom testRuntime
-    check.dependsOn integrationTest
-    //integrationTest.mustRunAfter test
 }
 
 repositories {
@@ -68,6 +66,9 @@ task integrationTest(type: Test) {
         }
     }
 }
+
+check.dependsOn integrationTest
+integrationTest.mustRunAfter test
 
 tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
