@@ -1,9 +1,12 @@
 package it.xpug.kata.birthday_greetings;
 
+import static org.assertj.core.api.StrictAssertions.assertThat;
 import static org.junit.Assert.*;
 
 import it.xpug.kata.birthday_greetings.BirthdayService;
 import it.xpug.kata.birthday_greetings.XDate;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.*;
 
 import com.dumbster.smtp.*;
@@ -32,19 +35,20 @@ public class AcceptanceTest {
 
 		birthdayService.sendGreetings("employee_data.txt", new XDate("2008/10/08"), "localhost", NONSTANDARD_PORT);
 
-		assertEquals("message not sent?", 1, mailServer.getReceivedEmailSize());
+		SoftAssertions must = new SoftAssertions();
+		must.assertThat(mailServer.getReceivedEmailSize()).describedAs("message not sent?").isGreaterThanOrEqualTo(1);
+
 		SmtpMessage message = (SmtpMessage) mailServer.getReceivedEmail().next();
-		assertEquals("Happy Birthday, dear John!", message.getBody());
-		assertEquals("Happy Birthday!", message.getHeaderValue("Subject"));
-		String[] recipients = message.getHeaderValues("To");
-		assertEquals(1, recipients.length);
-		assertEquals("john.doe@foobar.com", recipients[0].toString());
+        must.assertThat(message.getBody()).contains("Happy Birthday, dear John!");
+        must.assertThat(message.getHeaderValue("Subject")).isEqualTo("Happy Birthday!");
+        must.assertThat( message.getHeaderValues("To")).containsExactly("john.doe@foobar.com");
+        must.assertAll();
 	}
 
 	@Test
 	public void willNotSendEmailsWhenNobodysBirthday() throws Exception {
 		birthdayService.sendGreetings("employee_data.txt", new XDate("2008/01/01"), "localhost", NONSTANDARD_PORT);
 
-		assertEquals("what? messages?", 0, mailServer.getReceivedEmailSize());
+		assertThat(mailServer.getReceivedEmailSize()).describedAs("what? messages?").isLessThanOrEqualTo(0);
 	}
 }
