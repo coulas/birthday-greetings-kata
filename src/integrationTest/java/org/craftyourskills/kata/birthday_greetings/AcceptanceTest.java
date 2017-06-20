@@ -1,15 +1,15 @@
 package org.craftyourskills.kata.birthday_greetings;
 
-import static org.assertj.core.api.StrictAssertions.assertThat;
-import static org.junit.Assert.*;
-
-import it.xpug.kata.birthday_greetings.BirthdayService;
-import it.xpug.kata.birthday_greetings.XDate;
-import org.assertj.core.api.Assertions;
+import com.dumbster.smtp.SimpleSmtpServer;
+import com.dumbster.smtp.SmtpMessage;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-import com.dumbster.smtp.*;
+import java.time.LocalDate;
+
+import static org.assertj.core.api.StrictAssertions.assertThat;
 
 
 public class AcceptanceTest {
@@ -21,7 +21,7 @@ public class AcceptanceTest {
 	@Before
 	public void setUp() throws Exception {
 		mailServer = SimpleSmtpServer.start(NONSTANDARD_PORT);
-		birthdayService = new BirthdayService(__);
+		birthdayService = new BirthdayService("localhost", NONSTANDARD_PORT, "employee_data.txt");
 	}
 
 	@After
@@ -33,7 +33,7 @@ public class AcceptanceTest {
 	@Test
 	public void willSendGreetings_whenItsSomebodysBirthday() throws Exception {
 
-		birthdayService.sendGreetings(__);
+		birthdayService.sendGreetings(LocalDate.parse("2017/12/08"));
 
 		SoftAssertions must = new SoftAssertions();
 		must.assertThat(mailServer.getReceivedEmailSize()).describedAs("message not sent?").isGreaterThanOrEqualTo(1);
@@ -47,7 +47,7 @@ public class AcceptanceTest {
 
 	@Test
 	public void willNotSendEmailsWhenNobodysBirthday() throws Exception {
-		birthdayService.sendGreetings(__);
+		birthdayService.sendGreetings(LocalDate.parse("2017/12/09"));
 
 		assertThat(mailServer.getReceivedEmailSize()).describedAs("what? messages?").isLessThanOrEqualTo(0);
 	}
