@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import static org.assertj.core.api.StrictAssertions.assertThat;
 
 
-public class AcceptanceTest {
+public class BirthdayEndtoEndShould {
 
 	private static final int NONSTANDARD_PORT = 9999;
 	private BirthdayService birthdayService;
@@ -35,14 +35,14 @@ public class AcceptanceTest {
 
 		birthdayService.sendGreetings(LocalDate.parse("2017/12/08"));
 
-		SoftAssertions must = new SoftAssertions();
-		must.assertThat(mailServer.getReceivedEmailSize()).describedAs("message not sent?").isGreaterThanOrEqualTo(1);
+		SoftAssertions should = new SoftAssertions();
+		should.assertThat(mailServer.getReceivedEmailSize()).describedAs("message not sent?").isGreaterThanOrEqualTo(1);
 
 		SmtpMessage message = (SmtpMessage) mailServer.getReceivedEmail().next();
-		must.assertThat(message.getBody()).contains("Happy Birthday, dear John!");
-		must.assertThat(message.getHeaderValue("Subject")).isEqualTo("Happy Birthday!");
-		must.assertThat( message.getHeaderValues("To")).containsExactly("john.doe@foobar.com");
-		must.assertAll();
+		should.assertThat(message.getBody()).contains("Happy Birthday, dear John!");
+		should.assertThat(message.getHeaderValue("Subject")).isEqualTo("Happy Birthday!");
+		should.assertThat( message.getHeaderValues("To")).containsExactly("john.doe@foobar.com");
+		should.assertAll();
 	}
 
 	@Test
